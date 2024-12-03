@@ -190,38 +190,3 @@ class DocumentManager:
             return extractor.extract_text(filepath)
         else:
             return f"No extractor found for file type: {file_ext}"
-    
-    def run(self) -> None:
-        """
-        Main method to run the document manager interactive session.
-        """
-        while True:
-            # Scan documents
-            self.scan_documents()
-            
-            # Select a document
-            selected_doc = self.select_document()
-            
-            # Exit if no document selected
-            if not selected_doc:
-                print("Exiting...")
-                break
-            
-            # Extract and display text
-            print(f"\n--- Contents of {os.path.basename(selected_doc)} ---")
-            print(self.extract_document_text(selected_doc))
-            
-            # Ask if user wants to continue
-            cont = input("\nDo you want to view another document? (y/n): ")
-            if cont.lower() != 'y':
-                break
-
-# def main():
-#     """
-#     Entry point for the document text extraction application.
-#     """
-#     doc_manager = DocumentManager()
-#     doc_manager.run()
-
-# if __name__ == '__main__':
-#     main()
