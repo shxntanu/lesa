@@ -226,11 +226,3 @@ class DocumentManager:
 
 # if __name__ == '__main__':
 #     main()
-
-# Installation instructions:
-# pip install python-docx PyPDF2 textract
-
-# Note: 
-# - textract might require additional system dependencies
-# - For Windows, you might need additional PDF extraction libraries
-# - For macOS/Linux, ensure system-level text extraction tools are installed
