@@ -86,7 +86,6 @@ class DocumentManager:
     Responsibilities:
     - Scan directory for supported documents
     - Provide document selection interface
-    - Coordinate text extraction
     """
     
     def __init__(self, directory: str = '.'):
