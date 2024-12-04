@@ -7,19 +7,22 @@ readme = "README.md"
 package-mode = true
 
 [tool.poetry.dependencies]
-python = "^3.12"
+python = "^3.10.14"
 ollama = "^0.4.2"
 requests = "^2.32.3"
 rich = "^13.9.4"
 psutil = "^6.1.0"
 python-docx = "^1.1.2"
 pypdf2 = "^3.0.1"
-textract = "^1.6.5"
 typer = "^0.14.0"
 chromadb = "^0.5.21"
 pandas = "^2.2.3"
 chroma-haystack = "^1.0.0"
 haystack-ai = "^2.7.0"
+ollama-haystack = "^2.1.0"
+six = "^1.16.0"
+torch = "^2.5.1"
+sentence-transformers = "^3.3.1"
 
 
 [build-system]
