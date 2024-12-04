@@ -1,3 +1,4 @@
 dist
 .venv
 *.pyc
+lesa/samples/embeddings
