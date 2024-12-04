@@ -21,13 +21,6 @@ def start():
     Returns:
         Optional[subprocess.Popen]: Process object if server starts successfully, None otherwise
     """
-    BANNER = """
-    ╭────────────────────── Lesa ──────────────────────╮
-    │            ⚡ AI-Powered Git Commits ⚡            │
-    │         Generated Locally, Commit Globally       │
-    ╰──────────────────────────────────────────────────╯
-    """
-    console.print(Text(BANNER, justify="center"))
 
     # Ensure configuration is set up
     # ConfigManager.ensure_config()
@@ -89,7 +82,7 @@ def read(file_path: str = typer.Argument(..., help="Path of the file to read")):
     
     if not OllamaManager.is_server_running():
         console.print(f"[red]Error: Ollama server is not running![/red]")
-        console.print(f"Start the ollama server by running [cyan]autocommitt start[/cyan] command.")
+        console.print(f"Start the ollama server by running [cyan]lesa start[/cyan] command.")
         raise typer.Exit(1)
     
     cm = ConversationManager()
