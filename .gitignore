@@ -2,3 +2,4 @@ dist
 .venv
 *.pyc
 lesa/samples/embeddings
+__pycache__
