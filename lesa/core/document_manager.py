@@ -4,7 +4,7 @@ from typing import List, Optional
 
 import docx
 import PyPDF2
-import textract
+# import textract
 
 class DocumentExtractor(ABC):
     """Abstract base class for document text extraction."""
@@ -61,23 +61,23 @@ class PDFExtractor(DocumentExtractor):
         except Exception as e:
             return f"Error extracting text from {filepath}: {str(e)}"
 
-class GenericTextExtractor(DocumentExtractor):
-    """Extractor for generic text-based files using textract."""
+# class GenericTextExtractor(DocumentExtractor):
+#     """Extractor for generic text-based files using textract."""
     
-    def extract_text(self, filepath: str) -> str:
-        """
-        Extract text from various text-based document formats.
+#     def extract_text(self, filepath: str) -> str:
+#         """
+#         Extract text from various text-based document formats.
         
-        Args:
-            filepath (str): Path to the document file
+#         Args:
+#             filepath (str): Path to the document file
         
-        Returns:
-            str: Extracted text from the document
-        """
-        try:
-            return textract.process(filepath).decode('utf-8')
-        except Exception as e:
-            return f"Error extracting text from {filepath}: {str(e)}"
+#         Returns:
+#             str: Extracted text from the document
+#         """
+#         try:
+#             return textract.process(filepath).decode('utf-8')
+#         except Exception as e:
+#             return f"Error extracting text from {filepath}: {str(e)}"
 
 class DocumentManager:
     """
@@ -99,9 +99,9 @@ class DocumentManager:
         self.supported_extensions = {
             '.docx': DocxExtractor(),
             '.pdf': PDFExtractor(),
-            '.txt': GenericTextExtractor(),
-            '.rtf': GenericTextExtractor(),
-            '.odt': GenericTextExtractor()
+            # '.txt': GenericTextExtractor(),
+            # '.rtf': GenericTextExtractor(),
+            # '.odt': GenericTextExtractor()
         }
         self.documents: List[str] = []
     

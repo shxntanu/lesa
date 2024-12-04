@@ -23,6 +23,9 @@ ollama-haystack = "^2.1.0"
 six = "^1.16.0"
 torch = "^2.5.1"
 sentence-transformers = "^3.3.1"
+markdown-it-py = "^3.0.0"
+mdit-plain = "^1.0.1"
+pypdf = "^5.1.0"
 
 
 [build-system]
