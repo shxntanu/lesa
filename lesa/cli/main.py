@@ -8,6 +8,10 @@ from rich.console import Console
 from lesa.core.ollama_manager import OllamaManager
 from lesa.core.conversation_manager import ConversationManager
 from lesa.core.document_manager import DocumentManager
+from lesa.utils.directory_manager import DirectoryManager
+
+cm = ConversationManager()
+dirm = DirectoryManager()
 
 console = Console()
 app = typer.Typer()
@@ -22,8 +26,12 @@ def start():
         Optional[subprocess.Popen]: Process object if server starts successfully, None otherwise
     """
 
-    # Ensure configuration is set up
-    # ConfigManager.ensure_config()
+    BANNER = """
+    ╭──────────────────────── Lesa ──────────────────────────╮
+    │      📚 Turn your terminal into a File Interpreter     │
+    ╰────────────────────────────────────────────────────────╯
+    """
+    console.print(Text(BANNER, justify="center"))
 
     if shutil.which("ollama") is None:
         console.print("[red]Error: Ollama is not installed or not in PATH[/red]")
@@ -72,6 +80,15 @@ def embed():
     """
     Looks for embeddable files in the current working directory and creates vector embeddings of the same.
     """
+    
+    if not OllamaManager.is_server_running():
+        console.print(f"[red]Error: Ollama server is not running![/red]")
+        console.print(f"Start the ollama server by running [cyan]lesa start[/cyan] command.")
+        raise typer.Exit(1)
+    
+    dirm.init()
+    console.print("[blue]Initialized configuration for embedding files[/blue]")
+    
     pass
 
 @app.command()
@@ -85,7 +102,6 @@ def read(file_path: str = typer.Argument(..., help="Path of the file to read")):
         console.print(f"Start the ollama server by running [cyan]lesa start[/cyan] command.")
         raise typer.Exit(1)
     
-    cm = ConversationManager()
     cm.embed_single_document_and_chat(file_path)
 
 @app.command()
