@@ -38,7 +38,7 @@ pypdf = "^5.1.0"
 platformdirs = "^4.3.6"
 
 [tool.poetry.scripts]
-lesa = "lesa.cli:main"
+lesa = "lesa.cli.main:app"
 
 [build-system]
 requires = ["poetry-core"]
