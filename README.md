@@ -12,6 +12,12 @@
 
 </div>
 
+## Features
+
+-   🖥️ **Completely On-Device**: Uses Ollama under the hood to interface with LLMs, so you can be sure your data is not leaving your device.
+-   📚 **Converse with (almost) all documents**: Supports PDF, DOCX and Text files.
+-   🤖 **Wide Range of LLMs**: Choose the Large Language Model of your choice. Whether you want to keep it quick and concise, or want to go all in with a huge context window, the choice is yours.
+
 ## Setup
 
 ### Prerequisites
@@ -22,7 +28,7 @@ This project uses [Ollama](https://ollama.com/) under the hood to utilize the po
 curl -fsSL https://ollama.com/install.sh | sh
 ```
 
-We recommend the Llama 3.1 8b or Qwen 4b model for the same. You can use any other model as well, just make sure it has enough context window to understand the content of your documents.
+This project uses the Llama 3.1 8b or Qwen 4b model as the default. You can use any other model as well, just make sure it has enough context window to understand the content of your documents.
 
 Pull Llama or Qwen using:
 
@@ -42,4 +48,10 @@ Simply install the package using pip:
 
 ```bash
 pip install lesa
+```
+
+To upgrade to the latest version, run:
+
+```bash
+pip install -u lesa
 ```
