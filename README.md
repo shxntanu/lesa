@@ -12,6 +12,7 @@
 
 </div>
 
+> [!NOTE]
 > This project is unfinished and in active development. Pull requests, suggestions and any sort of help in general is always welcome :)
 
 ## Features
