@@ -1,163 +1,154 @@
-import argparse
-import os
-import sys
-from typing import List
+from pathlib import Path
 
-# Haystack and related imports
+output_dir = "lesa/samples"
+
+import typer
+from rich.console import Console
+from rich.panel import Panel
+from rich.text import Text
+from rich.prompt import Prompt
+from typing import Optional
+
+from haystack.components.writers import DocumentWriter
+from haystack.components.converters import MarkdownToDocument, PyPDFToDocument, TextFileToDocument
+from haystack.components.preprocessors import DocumentSplitter, DocumentCleaner
+from haystack.components.routers import FileTypeRouter
+from haystack.components.joiners import DocumentJoiner
+from haystack.components.embedders import SentenceTransformersDocumentEmbedder
 from haystack import Pipeline
 from haystack_integrations.document_stores.chroma import ChromaDocumentStore
-from haystack.components.preprocessors import DocumentCleaner, DocumentSplitter
-from haystack.components.embedders import SentenceTransformersTextEmbedder, SentenceTransformersDocumentEmbedder
 from haystack_integrations.components.retrievers.chroma import ChromaEmbeddingRetriever
+from haystack.components.embedders import SentenceTransformersTextEmbedder
 from haystack.components.builders import PromptBuilder
-from haystack.dataclasses import Document
-
-from lesa.core.document_manager import DocumentManager
-
-dm = DocumentManager()
-
-# LLM interaction
 from haystack_integrations.components.generators.ollama import OllamaGenerator
 
-def load_document(file_path: str) -> List[Document]:
-    """
-    Load and convert document to Haystack Documents.
-    
-    :param file_path: Path to the document
-    :return: List of Haystack Documents
-    """
-    # reader = get_document_reader(file_path)
-    
-    # if reader:
-    #     # Use reader for PDFs, DOCXs
-    #     docs = reader.read(file_path)
-    # else:
-    #     # For text files, read directly
-    #     with open(file_path, 'r', encoding='utf-8') as f:
-    #         text = f.read()
-    #         docs = [Document(text)]
-    
-    docs = [Document(content=dm.extract_document_text(file_path))]
-    
-    return docs
+document_store = ChromaDocumentStore(persist_path="lesa/samples/embeddings")
+file_type_router = FileTypeRouter(mime_types=["text/plain", "application/pdf", "text/markdown"])
+text_file_converter = TextFileToDocument()
+markdown_converter = MarkdownToDocument()
+pdf_converter = PyPDFToDocument()
+document_joiner = DocumentJoiner()
 
-def create_rag_pipeline(document_store, model_name: str = "mistral"):
-    """
-    Create a Retrieval-Augmented Generation (RAG) pipeline.
-    
-    :param document_store: ChromaDB document store
-    :param model_name: Ollama model name
-    :return: Configured Haystack pipeline
-    """
-    # Document embedder to create embeddings for documents
-    doc_embedder = SentenceTransformersDocumentEmbedder()
-    
-    # Text embedder for queries
-    text_embedder = SentenceTransformersTextEmbedder()
-    
-    # Retriever to find relevant documents
-    retriever = ChromaEmbeddingRetriever(document_store=document_store)
-    
-    # Prompt builder for RAG
-    prompt_template = """
-    Context: {% for document in documents %}
-        {{ document.content }}
-    {% endfor %}
+document_cleaner = DocumentCleaner()
+document_splitter = DocumentSplitter(split_by="word", split_length=150, split_overlap=50)
 
-    Question: {{ query }}
+document_embedder = SentenceTransformersDocumentEmbedder(model="sentence-transformers/all-MiniLM-L6-v2", progress_bar=False)
+document_embedder.warm_up()
+document_writer = DocumentWriter(document_store)
 
-    Based on the context, please provide a detailed and helpful answer.
+preprocessing_pipeline = Pipeline()
+preprocessing_pipeline.add_component(instance=file_type_router, name="file_type_router")
+preprocessing_pipeline.add_component(instance=text_file_converter, name="text_file_converter")
+preprocessing_pipeline.add_component(instance=markdown_converter, name="markdown_converter")
+preprocessing_pipeline.add_component(instance=pdf_converter, name="pypdf_converter")
+preprocessing_pipeline.add_component(instance=document_joiner, name="document_joiner")
+preprocessing_pipeline.add_component(instance=document_cleaner, name="document_cleaner")
+preprocessing_pipeline.add_component(instance=document_splitter, name="document_splitter")
+preprocessing_pipeline.add_component(instance=document_embedder, name="document_embedder")
+preprocessing_pipeline.add_component(instance=document_writer, name="document_writer")
+
+preprocessing_pipeline.connect("file_type_router.text/plain", "text_file_converter.sources")
+preprocessing_pipeline.connect("file_type_router.application/pdf", "pypdf_converter.sources")
+preprocessing_pipeline.connect("file_type_router.text/markdown", "markdown_converter.sources")
+preprocessing_pipeline.connect("text_file_converter", "document_joiner")
+preprocessing_pipeline.connect("pypdf_converter", "document_joiner")
+preprocessing_pipeline.connect("markdown_converter", "document_joiner")
+preprocessing_pipeline.connect("document_joiner", "document_cleaner")
+preprocessing_pipeline.connect("document_cleaner", "document_splitter")
+preprocessing_pipeline.connect("document_splitter", "document_embedder")
+preprocessing_pipeline.connect("document_embedder", "document_writer")
+
+preprocessing_pipeline.run({"file_type_router": {"sources": list(Path(output_dir).glob("**/*"))}})
+
+template = """
+You are an intelligent AI agent whose job is to understand the context from documents and whenever a user asks a question, provide answers
+to them using context from the document.
+
+Context:
+{% for document in documents %}
+    {{ document.content }}
+{% endfor %}
+
+Question: {{ question }}
+Answer:
+"""
+
+generator = OllamaGenerator(model="qwen:4b",
+                            url = "http://localhost:11434",
+                            generation_kwargs={
+                              "num_predict": 100,
+                              "temperature": 0.9,
+                              })
+
+pipe = Pipeline()
+pipe.add_component("embedder", SentenceTransformersTextEmbedder(model="sentence-transformers/all-MiniLM-L6-v2", progress_bar=False))
+pipe.add_component("retriever", ChromaEmbeddingRetriever(document_store=document_store))
+pipe.add_component("prompt_builder", PromptBuilder(template=template))
+pipe.add_component("llm", generator)
+
+pipe.connect("embedder.embedding", "retriever.query_embedding")
+pipe.connect("retriever", "prompt_builder.documents")
+pipe.connect("prompt_builder", "llm")
+
+app = typer.Typer()
+console = Console()
+
+@app.command()
+def chat(system_prompt: Optional[str] = typer.Option(None, help="Optional system-wide context or instruction")):
     """
-    prompt_builder = PromptBuilder(template=prompt_template)
+    Start an interactive chat with the RAG pipeline.
     
-    # Ollama generator
-    generator = OllamaGenerator(model=model_name)
+    Use Ctrl+C to exit the chat.
+    """
+    console.print(Panel.fit(
+        Text("RAG Pipeline Chat Interface", style="bold magenta"),
+        border_style="blue"
+    ))
     
-    # Create pipeline
-    rag_pipeline = Pipeline()
-    rag_pipeline.add_component("text_embedder", text_embedder)
-    rag_pipeline.add_component("retriever", retriever)
-    rag_pipeline.add_component("prompt_builder", prompt_builder)
-    rag_pipeline.add_component("generator", generator)
+    if system_prompt:
+        console.print(Panel(
+            Text(f"System Prompt: {system_prompt}", style="dim"),
+            border_style="dim"
+        ))
     
-    rag_pipeline.connect("text_embedder", "retriever")
-    rag_pipeline.connect("retriever", "prompt_builder.documents")
-    rag_pipeline.connect("prompt_builder", "generator")
-    
-    return rag_pipeline
-
-def main():
-    print("JHELLO")
-    # Argument parsing
-    parser = argparse.ArgumentParser(description="RAG CLI Tool with Haystack, ChromaDB, and Ollama")
-    parser.add_argument("document", help="Path to the document to be processed")
-    parser.add_argument("--model", default="llama3", help="Ollama model name (default: llama3)")
-    parser.add_argument("--max-docs", type=int, default=5, help="Maximum number of retrieved documents")
-    
-    args = parser.parse_args()
-    
-    # Validate file exists
-    if not os.path.exists(args.document):
-        print(f"Error: Document {args.document} not found.")
-        sys.exit(1)
-    
-    # Load document
-    print(f"Loading document: {args.document}")
-    documents = load_document(args.document)
-    
-    # Create document store
-    document_store = ChromaDocumentStore()
-    
-    # Preprocess documents
-    # preprocessor = TextPreprocessor(split_length=200, split_overlap=20)
-    splitter = DocumentSplitter(split_by="passage", split_length=200, split_overlap=20)
-    split_docs = splitter.run(documents)
-    preprocessor = DocumentCleaner()
-    preprocessed_docs = preprocessor.run(split_docs['documents'])
-    
-    # Create document embeddings and store
-    doc_embedder = SentenceTransformersDocumentEmbedder()
-    doc_embedder.warm_up()
-    docs_with_embeddings = doc_embedder.run(preprocessed_docs['documents'])
-    document_store.write_documents(docs_with_embeddings['documents'])
-    
-    # Create RAG pipeline
-    rag_pipeline = create_rag_pipeline(document_store, args.model)
-    
-    # Interactive chat loop
-    print(f"\n🤖 RAG Chat initialized with {args.model} model. Type 'exit' to quit.")
-    print("------------------------------------------------")
-    
-    while True:
-        try:
-            query = input("\n> ")
+    try:
+        while True:
+            user_input = Prompt.ask("[bold green]You[/bold green]", password=False)
             
-            if query.lower() == 'exit':
+            if user_input.lower() in ['exit', 'quit', 'q']:
+                console.print("[bold yellow]Exiting chat...[/bold yellow]")
+                
                 break
             
-            # Run pipeline
-            result = rag_pipeline.run({
-                "text_embedder": {"text": query},
-                "retriever": {"top_k": args.max_docs},
-                "prompt_builder": {"query": query}
-            })
-            
-            # Print response
-            print("\n🔍 Response:", result['generator']['replies'][0])
-        
-        except KeyboardInterrupt:
-            print("\n\nChat terminated by user.")
-            break
+            try:
+                question = (
+                    f"{system_prompt + ' ' if system_prompt else ''}{user_input}"
+                )
+                
+                result = pipe.run(
+                    {
+                        "embedder": {"text": question},
+                        "prompt_builder": {"question": question},
+                        "llm": {"generation_kwargs": {"max_new_tokens": 350}},
+                    }
+                )
+                
+                response = result['llm']['replies'][0] if result['llm']['replies'] else "No response generated."
+                
+                console.print(Panel(
+                    Text(response, style="white"),
+                    title="[bold blue]RAG Response[/bold blue]",
+                    border_style="blue"
+                ))
+                
+            except Exception as e:
+                console.print(Panel(
+                    Text(f"Error processing query: {str(e)}", style="bold red"),
+                    border_style="red"
+                ))
     
-    print("\nThank you for using the RAG CLI Tool!")
+    except KeyboardInterrupt:
+        console.print("\n[bold yellow]Chat terminated by user.[/bold yellow]")
 
 if __name__ == "__main__":
-    main()
-
-# Requirements:
-# pip install haystack-ai
-# pip install haystack-ai-integrations
-# pip install ollama
-# pip install sentence-transformers
-# pip install python-docx
-# pip install chromadb
+    app()
