@@ -53,5 +53,5 @@ pip install lesa
 To upgrade to the latest version, run:
 
 ```bash
-pip install -u lesa
+pip install -U lesa
 ```
