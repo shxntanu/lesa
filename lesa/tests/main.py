@@ -1,6 +1,6 @@
 from pathlib import Path
 
-output_dir = "lesa/samples"
+output_dir = "lesa/samples/documents"
 
 import typer
 from rich.console import Console
