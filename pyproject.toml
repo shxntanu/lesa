@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "lesa"
-version = "0.1.0"
+version = "0.1.0.1"
 description = ""
 authors = ["Shantanu Wable <shantanuwable2003@gmail.com>"]
 readme = "README.md"
@@ -26,7 +26,10 @@ sentence-transformers = "^3.3.1"
 markdown-it-py = "^3.0.0"
 mdit-plain = "^1.0.1"
 pypdf = "^5.1.0"
+platformdirs = "^4.3.6"
 
+[tool.poetry.scripts]
+lesa = "lesa.cli:main"
 
 [build-system]
 requires = ["poetry-core"]
