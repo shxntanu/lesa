@@ -8,7 +8,7 @@
 
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/downloads/)
 ![PyPI - Version](https://img.shields.io/pypi/v/lesa)
-![PyPI - Downloads](https://img.shields.io/pypi/dm/lesa)
+<!-- ![PyPI - Downloads](https://img.shields.io/pypi/dm/lesa) -->
 
 </div>
 
