@@ -12,6 +12,8 @@
 
 </div>
 
+> This project is unfinished and in active development. Pull requests, suggestions and any sort of help in general is always welcome :)
+
 ## Features
 
 -   🖥️ **Completely On-Device**: Uses Ollama under the hood to interface with LLMs, so you can be sure your data is not leaving your device.
