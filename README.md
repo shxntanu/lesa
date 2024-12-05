@@ -1,6 +1,8 @@
 ![Banner](assets/banner.png)
 
-> _lesa_ (verb) - to read, to study, to learn
+> _lesa_
+> `[lee - saa]` • Old Norse <br/>
+> (v.) to read, to study, to learn
 
 **_lesa_** is a CLI tool built in Python that allows you to converse with your documents from the terminal, completely offline and on-device using **Ollama**. Open the terminal in the directory of your choice and start a conversation with any document!
 
