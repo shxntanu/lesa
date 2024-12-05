@@ -15,13 +15,13 @@
 > [!NOTE]
 > This project is unfinished and in active development. Pull requests, suggestions and any sort of help in general is always welcome :)
 
-## Features
+## 🚀 Features
 
 -   🖥️ **Completely On-Device**: Uses Ollama under the hood to interface with LLMs, so you can be sure your data is not leaving your device.
 -   📚 **Converse with (almost) all documents**: Supports PDF, DOCX and Text files.
 -   🤖 **Wide Range of LLMs**: Choose the Large Language Model of your choice. Whether you want to keep it quick and concise, or want to go all in with a huge context window, the choice is yours.
 
-## Setup
+## 🔧 Setup
 
 ### Prerequisites
 
