@@ -14,8 +14,11 @@ from haystack.components.joiners import DocumentJoiner
 from haystack.components.embedders import SentenceTransformersDocumentEmbedder
 from haystack import Pipeline
 from haystack_integrations.document_stores.chroma import ChromaDocumentStore
+from haystack.document_stores.in_memory import InMemoryDocumentStore
+from haystack.components.retrievers.in_memory import InMemoryBM25Retriever
 from haystack_integrations.components.retrievers.chroma import ChromaEmbeddingRetriever
 from haystack.components.embedders import SentenceTransformersTextEmbedder
+from haystack.document_stores.types import DuplicatePolicy
 from haystack.components.builders import PromptBuilder
 from haystack_integrations.components.generators.ollama import OllamaGenerator
 
@@ -132,7 +135,7 @@ class ConversationManager:
             model=document_model, 
             progress_bar=False
         ))
-        self.pipe.add_component("retriever", ChromaEmbeddingRetriever(document_store=self.document_store))
+        self.pipe.add_component("retriever", ChromaEmbeddingRetriever(document_store=self.document_store, top_k=25))
         self.pipe.add_component("prompt_builder", PromptBuilder(template=self.template))
         self.pipe.add_component("llm", self.generator)
         
@@ -180,6 +183,7 @@ class ConversationManager:
         
         :param system_prompt: Optional system-wide context or instruction
         """
+        
         self.console.print(Panel.fit(
             Text("RAG Pipeline Chat Interface", style="bold magenta"),
             border_style="blue"
@@ -203,9 +207,9 @@ class ConversationManager:
                     question = f"{system_prompt + ' ' if system_prompt else ''}{user_input}"
                     
                     result = pipeline.run({
-                        "embedder": {"text": question},
+                        "retriever": {"query": question},
                         "prompt_builder": {"question": question},
-                        "llm": {"generation_kwargs": {"max_new_tokens": 350}},
+                        # "llm": {"generation_kwargs": {"max_new_tokens": 350}},
                     })
                     
                     response = result['llm']['replies'][0] if result['llm']['replies'] else "No response generated."
@@ -235,53 +239,74 @@ class ConversationManager:
         :return: List of embedded documents
         """
                 
-        # Determine which document store to use
-        in_memory_document_store = ChromaDocumentStore(persist_path=None)
-        document_writer = DocumentWriter(in_memory_document_store)
+        docu_store = InMemoryDocumentStore()
+        document_writer = DocumentWriter(docu_store)
         
-        # Create a preprocessing pipeline
+        # file_type_router = FileTypeRouter(mime_types=["text/plain", "application/pdf", "text/markdown"])
+        # text_file_converter = TextFileToDocument()
+        # markdown_converter = MarkdownToDocument()
+        # pdf_converter = PyPDFToDocument()
+        # document_joiner = DocumentJoiner()
+        # document_cleaner = DocumentCleaner()
+        # document_splitter = DocumentSplitter(split_by="word", split_length=150, split_overlap=50)
         
+        # document_embedder = SentenceTransformersDocumentEmbedder(
+        #     model=document_model, 
+        #     progress_bar=False
+        # )
+        # document_embedder.warm_up()
         
-        file_type_router = FileTypeRouter(mime_types=["text/plain", "application/pdf", "text/markdown"])
-        text_file_converter = TextFileToDocument()
-        markdown_converter = MarkdownToDocument()
-        pdf_converter = PyPDFToDocument()
-        document_joiner = DocumentJoiner()
-        document_cleaner = DocumentCleaner()
-        document_splitter = DocumentSplitter(split_by="word", split_length=150, split_overlap=50)
+        # pipe = Pipeline()
+        # # Add components
+        # pipe.add_component(instance=file_type_router, name="file_type_router")
+        # pipe.add_component(instance=text_file_converter, name="text_file_converter")
+        # pipe.add_component(instance=markdown_converter, name="markdown_converter")
+        # pipe.add_component(instance=pdf_converter, name="pypdf_converter")
+        # pipe.add_component(instance=document_joiner, name="document_joiner")
+        # pipe.add_component(instance=document_cleaner, name="document_cleaner")
+        # pipe.add_component(instance=document_splitter, name="document_splitter")
+        # pipe.add_component(instance=document_embedder, name="document_embedder")
+        # pipe.add_component(instance=document_writer, name="document_writer")
         
-        document_embedder = SentenceTransformersDocumentEmbedder(
-            model=document_model, 
-            progress_bar=False
-        )
-        document_embedder.warm_up()
+        # # Connect components
+        # pipe.connect("file_type_router.text/plain", "text_file_converter.sources")
+        # pipe.connect("file_type_router.application/pdf", "pypdf_converter.sources")
+        # pipe.connect("file_type_router.text/markdown", "markdown_converter.sources")
+        # pipe.connect("text_file_converter", "document_joiner")
+        # pipe.connect("pypdf_converter", "document_joiner")
+        # pipe.connect("markdown_converter", "document_joiner")
+        # pipe.connect("document_joiner", "document_cleaner")
+        # pipe.connect("document_cleaner", "document_splitter")
+        # pipe.connect("document_splitter", "document_embedder")
+        # pipe.connect("document_embedder", "document_writer")
         
-        single_doc_preprocess_pipeline = Pipeline()
-        # Add components
-        single_doc_preprocess_pipeline.add_component(instance=file_type_router, name="file_type_router")
-        single_doc_preprocess_pipeline.add_component(instance=text_file_converter, name="text_file_converter")
-        single_doc_preprocess_pipeline.add_component(instance=markdown_converter, name="markdown_converter")
-        single_doc_preprocess_pipeline.add_component(instance=pdf_converter, name="pypdf_converter")
-        single_doc_preprocess_pipeline.add_component(instance=document_joiner, name="document_joiner")
-        single_doc_preprocess_pipeline.add_component(instance=document_cleaner, name="document_cleaner")
-        single_doc_preprocess_pipeline.add_component(instance=document_splitter, name="document_splitter")
-        single_doc_preprocess_pipeline.add_component(instance=document_embedder, name="document_embedder")
-        single_doc_preprocess_pipeline.add_component(instance=document_writer, name="document_writer")
+        # pipe = Pipeline()
+        # pipe.add_component("converter", PyPDFToDocument())
+        # pipe.add_component("cleaner", DocumentCleaner())
+        # pipe.add_component("splitter", DocumentSplitter(split_by="sentence", split_length=5))
+        # pipe.add_component("writer", DocumentWriter(document_store=docu_store))
+        # pipe.connect("converter", "cleaner")
+        # pipe.connect("cleaner", "splitter")
+        # pipe.connect("splitter", "writer")
         
-        # Connect components
-        single_doc_preprocess_pipeline.connect("file_type_router.text/plain", "text_file_converter.sources")
-        single_doc_preprocess_pipeline.connect("file_type_router.application/pdf", "pypdf_converter.sources")
-        single_doc_preprocess_pipeline.connect("file_type_router.text/markdown", "markdown_converter.sources")
-        single_doc_preprocess_pipeline.connect("text_file_converter", "document_joiner")
-        single_doc_preprocess_pipeline.connect("pypdf_converter", "document_joiner")
-        single_doc_preprocess_pipeline.connect("markdown_converter", "document_joiner")
-        single_doc_preprocess_pipeline.connect("document_joiner", "document_cleaner")
-        single_doc_preprocess_pipeline.connect("document_cleaner", "document_splitter")
-        single_doc_preprocess_pipeline.connect("document_splitter", "document_embedder")
-        single_doc_preprocess_pipeline.connect("document_embedder", "document_writer")
+        converter = PyPDFToDocument()
+        cleaner = DocumentCleaner()
+        splitter = DocumentSplitter(split_by="sentence", split_length=10, split_overlap=2)
+        writer = DocumentWriter(document_store=docu_store, policy=DuplicatePolicy.SKIP)
+
+        indexing_pipeline = Pipeline()
+        indexing_pipeline.add_component("converter", converter)
+        indexing_pipeline.add_component("cleaner", cleaner)
+        indexing_pipeline.add_component("splitter", splitter)
+        indexing_pipeline.add_component("writer", writer)
+
+        indexing_pipeline.connect("converter", "cleaner")
+        indexing_pipeline.connect("cleaner", "splitter")
+        indexing_pipeline.connect("splitter", "writer")
+
         
         # Run the pipeline
-        single_doc_preprocess_pipeline.run({
+        indexing_pipeline.run({
             "file_type_router": {"sources": list(Path('.').glob(file_path))}
         })
         
@@ -295,12 +320,14 @@ You are an intelligent AI agent whose job is to understand the context from docu
 to them using context from the document.
 
 Context:
+
 {% for document in documents %}
     {{ document.content }}
 {% endfor %}
 
-Question: {{ question }}
-Answer:
+Please answer the question based on the given information from the given document.
+
+{{question}}
 """
         
         generator = OllamaGenerator(model="qwen:4b",
@@ -311,12 +338,12 @@ Answer:
                               })
         
         single_document_chat_pipeline = Pipeline()
-        single_document_chat_pipeline.add_component("embedder", SentenceTransformersTextEmbedder(model="sentence-transformers/all-MiniLM-L6-v2", progress_bar=False))
-        single_document_chat_pipeline.add_component("retriever", ChromaEmbeddingRetriever(document_store=in_memory_document_store))
+        single_document_chat_pipeline.add_component("retriever", InMemoryBM25Retriever(document_store=docu_store, top_k=15))
         single_document_chat_pipeline.add_component("prompt_builder", PromptBuilder(template=template))
+        # single_document_chat_pipeline.add_component("embedder", SentenceTransformersTextEmbedder(model="sentence-transformers/all-MiniLM-L6-v2", progress_bar=False))
         single_document_chat_pipeline.add_component("llm", generator)
         
-        single_document_chat_pipeline.connect("embedder.embedding", "retriever.query_embedding")
+        # single_document_chat_pipeline.connect("embedder.embedding", "retriever.query_embedding")
         single_document_chat_pipeline.connect("retriever", "prompt_builder.documents")
         single_document_chat_pipeline.connect("prompt_builder", "llm")
         
