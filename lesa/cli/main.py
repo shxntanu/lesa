@@ -2,12 +2,12 @@ import typer
 import time
 import shutil
 from rich.text import Text
+from rich.panel import Panel
 from rich.table import Table
 from rich.console import Console
 
 from lesa.core.ollama_manager import OllamaManager
 from lesa.core.conversation_manager import ConversationManager
-from lesa.core.document_manager import DocumentManager
 from lesa.utils.directory_manager import DirectoryManager
 
 cm = ConversationManager()
@@ -26,12 +26,13 @@ def start():
         Optional[subprocess.Popen]: Process object if server starts successfully, None otherwise
     """
 
-    BANNER = """
-    ╭──────────────────────── Lesa ──────────────────────────╮
-    │      📚 Turn your terminal into a File Interpreter     │
-    ╰────────────────────────────────────────────────────────╯
-    """
-    console.print(Text(BANNER, justify="center"))
+    console.print(
+        Panel(
+            Text("📚 Turn your terminal into a File Interpreter", style="bold green", justify="center"),
+            border_style="green",
+            title="Lesa"
+        )
+    )
 
     if shutil.which("ollama") is None:
         console.print("[red]Error: Ollama is not installed or not in PATH[/red]")
@@ -53,7 +54,7 @@ def start():
         console.print("[yellow]Warning: Ollama server is already running![/yellow]")
 
     # Check and pull default model
-    model_name = "qwen:4b"
+    model_name = "llama3.1:latest"
 
     # console.print(f"[blue]Checking for default model {model_name}...[/blue]")
     if not OllamaManager.is_model_present(model_name):
