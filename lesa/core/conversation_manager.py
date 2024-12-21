@@ -10,7 +10,7 @@ from typing import Optional, List, Union
 
 from langchain.chains import RetrievalQA
 from langchain.text_splitter import CharacterTextSplitter
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain_core.prompts import ChatPromptTemplate
 from langchain.chains.combine_documents import create_stuff_documents_chain
@@ -136,11 +136,9 @@ class ConversationManager:
                     
                     response = result['answer'] if result['answer'] else "No response generated."
                     
-                    self.console.print(Panel(
-                        Text(response, style="white"),
-                        title="[bold blue]RAG Response[/bold blue]",
-                        border_style="blue"
-                    ))
+                    self.console.print(
+                        Text(f"[pink]Lesa[/pink]: {response}")
+                    )
                 
                 except Exception as e:
                     self.console.print(Panel(

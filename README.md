@@ -4,7 +4,7 @@
 > `[lee - saa]` • Old Norse <br/>
 > (v.) to read, to study, to learn
 
-**_lesa_** is a CLI tool built in Python that allows you to converse with your documents from the terminal, completely offline and on-device using **Ollama**. Open the terminal in the directory of your choice and start a conversation with any document!
+`lesa` is a CLI tool built in Python that allows you to converse with your documents from the terminal, completely offline and on-device using **Ollama**. Open the terminal in the directory of your choice and start a conversation with any document!
 
 <div align="center">
 
@@ -14,16 +14,33 @@
 
 </div>
 
-> [!NOTE]
-> This project is unfinished and in active development. Pull requests, suggestions and any sort of help in general is always welcome :)
+## Usage
 
-## 🚀 Features
+To start a conversation with a document, simply run:
+
+```bash
+lesa read path/to/your/document
+```
+
+`lesa` supports PDF and DOCX files at the moment.
+
+### Example
+
+```console
+foo@bar:~$ lesa read documents/Microprocessor.pdf
+
+> You: what is the difference between real mode and protected mode?
+
+> Lesa: According to the system's context, there are three differentiating points between real mode and protected mode...
+```
+
+## Features
 
 -   🖥️ **Completely On-Device**: Uses Ollama under the hood to interface with LLMs, so you can be sure your data is not leaving your device.
 -   📚 **Converse with (almost) all documents**: Supports PDF, DOCX and Text files.
 -   🤖 **Wide Range of LLMs**: Choose the Large Language Model of your choice. Whether you want to keep it quick and concise, or want to go all in with a huge context window, the choice is yours.
 
-## 🔧 Setup
+## Setup
 
 ### Prerequisites
 
