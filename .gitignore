@@ -3,3 +3,5 @@ dist
 *.pyc
 lesa/samples/embeddings
 __pycache__
+.lesa
+.DS_Store

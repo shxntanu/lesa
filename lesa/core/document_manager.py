@@ -1,16 +1,15 @@
 import os
 from abc import ABC, abstractmethod
 from typing import List, Optional
+from langchain_core.documents import Document
 
-import docx
-import PyPDF2
-# import textract
+from langchain_community.document_loaders import PyPDFLoader, Docx2txtLoader
 
 class DocumentExtractor(ABC):
     """Abstract base class for document text extraction."""
     
     @abstractmethod
-    def extract_text(self, filepath: str) -> str:
+    def extract_text(self, filepath: str) -> list[Document]:
         """
         Abstract method to extract text from a document.
         
@@ -18,14 +17,14 @@ class DocumentExtractor(ABC):
             filepath (str): Path to the document file
         
         Returns:
-            str: Extracted text from the document
+            list[Document]: List of extracted documents
         """
         pass
 
 class DocxExtractor(DocumentExtractor):
     """Extractor for .docx files using python-docx."""
     
-    def extract_text(self, filepath: str) -> str:
+    def extract_text(self, filepath: str) -> list[Document]:
         """
         Extract text from a Word document.
         
@@ -33,18 +32,19 @@ class DocxExtractor(DocumentExtractor):
             filepath (str): Path to the .docx file
         
         Returns:
-            str: Extracted text from the document
+            list[Document]: List of extracted documents
         """
         try:
-            doc = docx.Document(filepath)
-            return '\n'.join([paragraph.text for paragraph in doc.paragraphs])
+            loader = Docx2txtLoader(file_path=filepath)
+            documents = loader.load()
+            return documents
         except Exception as e:
             return f"Error extracting text from {filepath}: {str(e)}"
 
 class PDFExtractor(DocumentExtractor):
     """Extractor for PDF files using PyPDF2."""
     
-    def extract_text(self, filepath: str) -> str:
+    def extract_text(self, filepath: str) -> list[Document]:
         """
         Extract text from a PDF document.
         
@@ -55,29 +55,11 @@ class PDFExtractor(DocumentExtractor):
             str: Extracted text from the document
         """
         try:
-            with open(filepath, 'rb') as file:
-                reader = PyPDF2.PdfReader(file)
-                return '\n'.join([page.extract_text() for page in reader.pages])
+            loader = PyPDFLoader(file_path=filepath)
+            documents = loader.load()
+            return documents
         except Exception as e:
             return f"Error extracting text from {filepath}: {str(e)}"
-
-# class GenericTextExtractor(DocumentExtractor):
-#     """Extractor for generic text-based files using textract."""
-    
-#     def extract_text(self, filepath: str) -> str:
-#         """
-#         Extract text from various text-based document formats.
-        
-#         Args:
-#             filepath (str): Path to the document file
-        
-#         Returns:
-#             str: Extracted text from the document
-#         """
-#         try:
-#             return textract.process(filepath).decode('utf-8')
-#         except Exception as e:
-#             return f"Error extracting text from {filepath}: {str(e)}"
 
 class DocumentManager:
     """
