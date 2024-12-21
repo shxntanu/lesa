@@ -34,11 +34,11 @@ foo@bar:~$ lesa read documents/Microprocessor.pdf
 > Lesa: According to the system's context, there are three differentiating points between real mode and protected mode...
 ```
 
-## Features
+<!-- ## Features
 
 -   🖥️ **Completely On-Device**: Uses Ollama under the hood to interface with LLMs, so you can be sure your data is not leaving your device.
 -   📚 **Converse with (almost) all documents**: Supports PDF, DOCX and Text files.
--   🤖 **Wide Range of LLMs**: Choose the Large Language Model of your choice. Whether you want to keep it quick and concise, or want to go all in with a huge context window, the choice is yours.
+-   🤖 **Wide Range of LLMs**: Choose the Large Language Model of your choice. Whether you want to keep it quick and concise, or want to go all in with a huge context window, the choice is yours. -->
 
 ## Setup
 
@@ -77,3 +77,11 @@ To upgrade to the latest version, run:
 ```bash
 pip install -U lesa
 ```
+
+## Contribute
+
+We welcome contributions! If you'd like to improve `little-date` or have any feedback, feel free to open an issue or submit a pull request.
+
+## License
+
+Apache-2.0
