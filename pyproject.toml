@@ -1,8 +1,8 @@
 [tool.poetry]
 name = "lesa"
-version = "0.1.0.3"
+version = "0.1.0.4"
 description = "A CLI tool to converse with any document locally using Ollama."
-authors = ["Shantanu Wable <shantanuwable2003@gmail.com>"]
+authors = ["Shantanu Wable <shantanuwable2003@gmail.com>", "Omkar Wagholikar <omkarrwagholikar@gmail.com>"]
 repository = "https://github.com/shxntanu/lesa"
 keywords = ["lesa", "rag pipeline", "document chatbot"]
 classifiers = [
