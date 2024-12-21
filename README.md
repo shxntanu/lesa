@@ -1,8 +1,12 @@
-![Banner](assets/banner.png)
+![Banner](assets/banner-v2.png)
 
-> _lesa_
-> `[lee - saa]` • Old Norse <br/>
-> (v.) to read, to study, to learn
+<div align="center">
+
+ **_lesa_**
+ `[lee - saa]` • **Old Norse** <br/>
+ (v.) to read, to study, to learn
+
+</div>
 
 `lesa` is a CLI tool built in Python that allows you to converse with your documents from the terminal, completely offline and on-device using **Ollama**. Open the terminal in the directory of your choice and start a conversation with any document!
 
