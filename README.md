@@ -84,7 +84,7 @@ pip install -U lesa
 
 ## Contribute
 
-We welcome contributions! If you'd like to improve `little-date` or have any feedback, feel free to open an issue or submit a pull request.
+We welcome contributions! If you'd like to improve `lesa` or have any feedback, feel free to open an issue or submit a pull request.
 
 ## License
 
