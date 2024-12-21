@@ -10,6 +10,8 @@ from pathlib import Path
 from typing import Dict
 from platformdirs import user_config_dir, user_cache_dir
 
+from langchain_ollama import OllamaLLM
+
 from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn, TimeElapsedColumn
 
@@ -50,7 +52,7 @@ class OllamaManager:
 
         # Initialize config file if it doesn't exist
         if not cls.CONFIG_FILE.exists():
-            cls.save_config({"model_name": "llama3.2:3b"})
+            cls.save_config({"model_name": "llama3.1:latest"})
 
         # Initialize models file if it doesn't exist
         if not cls.MODELS_FILE.exists():
@@ -65,6 +67,7 @@ class OllamaManager:
             Dict: Current configuration settings
         """
         cls.ensure_config()
+        print("Config file location: ", cls.CONFIG_FILE)
         return json.loads(cls.CONFIG_FILE.read_text())
 
     @classmethod
@@ -107,7 +110,7 @@ class OllamaManager:
             str: Name of the active model
         """
         config = cls.get_config()
-        return config.get("model_name", "llama3.2:3b")  # Default if not set
+        return config.get("model_name", "llama3.1:latest")  # Default if not set
     
     @staticmethod
     def is_server_running() -> bool:
@@ -397,3 +400,17 @@ class OllamaManager:
         except Exception as e:
             console.print(f"[red]Unexpected error while deleting model: {str(e)}[/red]")
             return False
+        
+        
+    @classmethod
+    def serve_llm(cls) -> OllamaLLM:
+        """
+        Serve an Ollama LLM model for inference.
+
+        Args:
+            model_name (str): The name of the model to serve
+
+        Returns:
+            OllamaLLM: An instance of OllamaLLM for inference
+        """
+        return OllamaLLM(model=cls.get_active_model())
