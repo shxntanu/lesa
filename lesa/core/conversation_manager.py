@@ -20,7 +20,9 @@ from haystack_integrations.components.retrievers.chroma import ChromaEmbeddingRe
 from haystack.components.embedders import SentenceTransformersTextEmbedder
 from haystack.document_stores.types import DuplicatePolicy
 from haystack.components.builders import PromptBuilder
-from haystack_integrations.components.generators.ollama import OllamaGenerator
+from haystack_integrations.components.generators.ollama import OllamaChatGenerator
+from haystack.components.builders import ChatPromptBuilder
+from haystack.dataclasses import ChatMessage
 
 class ConversationManager:
     
@@ -83,7 +85,7 @@ class ConversationManager:
         """
         
         # Generator setup
-        self.generator = OllamaGenerator(
+        self.generator = OllamaChatGenerator(
             model=generator_model,
             url=generator_url,
             generation_kwargs={
@@ -315,39 +317,34 @@ class ConversationManager:
             border_style="green"
         ))
         
-        template = """
-You are an intelligent AI agent whose job is to understand the context from documents and whenever a user asks a question, provide answers
-to them using context from the document.
-
-Context:
-
-{% for document in documents %}
-    {{ document.content }}
-{% endfor %}
-
-Please answer the question based on the given information from the given document.
-
-{{question}}
-"""
+        messages = [
+            ChatMessage.from_system("You are an intelligent AI agent whose job is to understand the context from documents and whenever a user asks a question, provide answers to them using context from the document."),
+            ChatMessage.from_user("Context:\n{% for document in documents %}\n{{ document.content }}\n{% endfor %}\n\nPlease answer the question based on the given information from the given document.\n\nQuestion: {{question}}\n\nResponse:")
+        ]
         
-        generator = OllamaGenerator(model="qwen:4b",
+        generator = OllamaChatGenerator(model="qwen:4b",
                             url = "http://localhost:11434",
                             generation_kwargs={
                               "num_predict": 100,
                               "temperature": 0.9,
                               })
         
-        single_document_chat_pipeline = Pipeline()
-        single_document_chat_pipeline.add_component("retriever", InMemoryBM25Retriever(document_store=docu_store, top_k=15))
-        single_document_chat_pipeline.add_component("prompt_builder", PromptBuilder(template=template))
+        prompt_builder = ChatPromptBuilder()
+        
+        # Single Document Chat Pipeline
+        pipe = Pipeline()
+        
+        pipe.add_component("retriever", InMemoryBM25Retriever(document_store=docu_store, top_k=15))
+        pipe.add_component("prompt_builder", prompt_builder)
         # single_document_chat_pipeline.add_component("embedder", SentenceTransformersTextEmbedder(model="sentence-transformers/all-MiniLM-L6-v2", progress_bar=False))
-        single_document_chat_pipeline.add_component("llm", generator)
+        pipe.add_component("llm", generator)
         
         # single_document_chat_pipeline.connect("embedder.embedding", "retriever.query_embedding")
-        single_document_chat_pipeline.connect("retriever", "prompt_builder.documents")
-        single_document_chat_pipeline.connect("prompt_builder", "llm")
+        pipe.connect("retriever", "prompt_builder.documents")
+        pipe.connect("prompt_builder.prompt", "llm.messages")
         
-        self._chat(single_document_chat_pipeline)
+        self._chat(pipe)
+        
     
     def start_conversation(self):
         """
