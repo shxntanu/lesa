@@ -2,21 +2,28 @@
 
 <div align="center">
 
- **_lesa_**
- `[lee - saa]` • **Old Norse** <br/>
- (v.) to read, to study, to learn
-
-</div>
-
-`lesa` is a CLI tool built in Python that allows you to converse with your documents from the terminal, completely offline and on-device using **Ollama**. Open the terminal in the directory of your choice and start a conversation with any document!
-
-<div align="center">
-
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/downloads/)
 ![PyPI - Version](https://img.shields.io/pypi/v/lesa)
 ![PyPI Downloads](https://static.pepy.tech/badge/lesa)
 
 </div>
+
+<div align="center">
+
+**_lesa_**
+`[lee - saa]` • **Old Norse** <br/>
+(v.) to read, to study, to learn
+
+<!-- <div align="center">
+  <sub>Prepared by <a href="https://github.com/shxntanu">Shantanu Wable</a> and <a href="https://github.com/omkargwagholikar">Omkar Wagholikar</a> </sub>
+</div> -->
+
+</div>
+
+`lesa` is a CLI tool built in Python that allows you to converse with your documents from the terminal, completely offline and on-device using **Ollama**. Open the terminal in the directory of your choice and start a conversation with any document!
+
+
+
 
 ## Usage
 
@@ -26,7 +33,13 @@ To start a conversation with a document (`.pdf` and `.docx` for now), simply run
 lesa read path/to/your/document
 ```
 
-### Embed 
+Or start a conversation with an already-embedded directory, run:
+
+```bash
+lesa chat
+```
+
+### Embed
 
 To embed all files from your current working directory, run:
 
@@ -46,21 +59,15 @@ This creates a `.lesa` config folder in your current working directory that stor
 
 ### Prerequisites
 
-This project uses [Ollama](https://ollama.com/) under the hood to utilize the power of large language models. To install Ollama, run:
+`lesa` uses [Ollama](https://ollama.com/) under the hood to utilize the power of large language models. To install Ollama, run:
 
 ```bash
 curl -fsSL https://ollama.com/install.sh | sh
 ```
 
-This project uses the Llama 3.1 8b or Qwen 4b model as the default. You can use any other model as well, just make sure it has enough context window to understand the content of your documents.
+`lesa` uses the Llama 3.1 8b as the default. You can use any other model as well, just make sure it has enough context window to understand the content of your documents.
 
-Pull Llama or Qwen using:
-
-```bash
-ollama pull qwen:4b
-```
-
-or
+Pull Llama using:
 
 ```bash
 ollama pull llama3.1

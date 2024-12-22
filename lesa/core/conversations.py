@@ -49,22 +49,6 @@ class ConversationManager:
         """Set up the conversation pipeline connections."""
         
         pass
-    
-    def embed_documents(self, documents_path: str = None):
-        """
-        Embed documents from a specified path.
-        
-        :param documents_path: Path to documents. If None, uses the default output_dir from initialization.
-        """
-        pass
-        
-    def embed_document(self, document_path: str = None):
-        """
-        Embed documents from a specified path.
-        
-        :param documents_path: Path to documents. If None, uses the default output_dir from initialization.
-        """
-        pass
         
     def _chat(self, chain, system_prompt: Optional[str] = None):
         """
@@ -157,4 +141,17 @@ class ConversationManager:
         """
         Start a conversation with the RAG pipeline.
         """
-        self._chat(self.pipe)
+        
+        llm = self.ollama_manager.serve_llm()
+        prompt = ChatPromptTemplate([
+            ("system", """Answer any use questions based solely on the context below:
+
+<context>
+{context}
+</context>"""),
+            ("human", """{input}"""),
+        ])
+        
+        combine_docs_chain = create_stuff_documents_chain(llm=llm, prompt=prompt)
+        qa_chain = create_retrieval_chain(retriever=self.embeddings_manager.vector_store.as_retriever(), combine_docs_chain=combine_docs_chain)
+        return self._chat(qa_chain)

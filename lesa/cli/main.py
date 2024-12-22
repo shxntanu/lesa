@@ -147,6 +147,19 @@ def read(file_path: str = typer.Argument(..., help="Path of the file to read")):
     return cm.embed_single_document_and_chat(file_path)
 
 @app.command()
+def chat():
+    """
+    Starts a chat with the embedded documents.
+    """
+    
+    if not OllamaManager.is_server_running():
+        console.print(f"[red]Error: Ollama server is not running![/red]")
+        console.print(f"Start the ollama server by running [cyan]lesa start[/cyan] command.")
+        raise typer.Exit(1)
+    
+    return cm.start_conversation()
+
+@app.command()
 def use(model_name: str = typer.Argument(..., help="Name of the model to use from Ollama.")):
     """
     Selects the model to use for conversing with the document.
