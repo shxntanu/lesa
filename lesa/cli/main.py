@@ -6,12 +6,12 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.console import Console
 
-from lesa.core.ollama_manager import OllamaManager
-from lesa.core.conversation_manager import ConversationManager
+from lesa.core.ollama import OllamaManager
+from lesa.core.conversations import ConversationManager
 from lesa.utils.directory_manager import DirectoryManager
 
 cm = ConversationManager()
-dirm = DirectoryManager()
+dm = DirectoryManager()
 
 console = Console()
 app = typer.Typer()
@@ -30,7 +30,8 @@ def start():
         Panel(
             Text("📚 Turn your terminal into a File Interpreter", style="bold green", justify="center"),
             border_style="green",
-            title="Lesa"
+            title="Lesa",
+            width=100
         )
     )
 
@@ -82,15 +83,31 @@ def embed():
     Looks for embeddable files in the current working directory and creates vector embeddings of the same.
     """
     
+    console.print(
+        Panel(
+            Text("📚 Turn your terminal into a File Interpreter", style="bold green", justify="center"),
+            border_style="green",
+            title="Lesa",
+            width=100
+        )
+    )
+    
     if not OllamaManager.is_server_running():
         console.print(f"[red]Error: Ollama server is not running![/red]")
         console.print(f"Start the ollama server by running [cyan]lesa start[/cyan] command.")
         raise typer.Exit(1)
     
-    dirm.init()
-    console.print("[blue]Initialized configuration for embedding files[/blue]")
-    
-    pass
+    with console.status("Creating configuration files...", spinner="earth") as status:
+        dm.init()
+        status.update("Extracting text from files...")
+        for file in dm.files:
+            console.log(f"Extracting text from {file}...")
+            docs = dm.extract_file_text(filepath=file)
+            console.log(f"Embedding documents from {file}...")
+            dm.embed_documents(docs)
+        console.log("Saving vector embeddings...")
+        dm.save_vector_store()
+    console.print("[green]Initialized configuration for embedding files[/green]")
 
 @app.command()
 def read(file_path: str = typer.Argument(..., help="Path of the file to read")):
@@ -103,7 +120,7 @@ def read(file_path: str = typer.Argument(..., help="Path of the file to read")):
         console.print(f"Start the ollama server by running [cyan]lesa start[/cyan] command.")
         raise typer.Exit(1)
     
-    cm.embed_single_document_and_chat(file_path)
+    return cm.embed_single_document_and_chat(file_path)
 
 @app.command()
 def use(model_name: str = typer.Argument(..., help="Name of the model to use from Ollama.")):
