@@ -249,7 +249,7 @@ class DirectoryManager:
         with open(self.config_file_path, 'w') as f:
             json.dump(config_data, f, indent=4)
         
-        print("Configuration updated successfully")
+        console.print("Configuration updated successfully")
         
     def scan_files(self) -> List[str]:
         """

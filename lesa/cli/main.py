@@ -8,7 +8,7 @@ from rich.console import Console
 
 from lesa.core.ollama import OllamaManager
 from lesa.core.conversations import ConversationManager
-from lesa.utils.directory_manager import DirectoryManager
+from lesa.core.directory_manager import DirectoryManager
 
 cm = ConversationManager()
 dm = DirectoryManager()

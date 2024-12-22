@@ -14,7 +14,7 @@ from langchain.chains.retrieval import create_retrieval_chain
 
 from lesa.core.documents import DocumentManager
 from lesa.core.ollama import OllamaManager
-from lesa.utils.directory_manager import DirectoryManager
+from lesa.core.directory_manager import DirectoryManager
 
 class ConversationManager:
     
