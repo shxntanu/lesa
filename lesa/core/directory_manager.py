@@ -160,7 +160,9 @@ class DirectoryManager:
         file_metadata = self._scan_directory()
         
         config_data = {
-            'initialized_at': datetime.now().isoformat(),
+            'initialized_at': datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            'embeddings_initialized': False,
+            'embeddings_init_time': None,
             'base_path': self.base_path,
             'files': file_metadata
         }
@@ -169,7 +171,6 @@ class DirectoryManager:
             json.dump(config_data, f, indent=4)
             
         self.scan_files()
-        # print(f"Lesa embeddings initialized in {self.base_path}")
     
     def _scan_directory(self, ignore_patterns: Optional[List[str]] = None) -> Dict[str, Dict]:
         """
@@ -232,6 +233,42 @@ class DirectoryManager:
                 changes['deleted_files'].append(path)
         
         return changes
+    
+    def check_configuration_folder(self) -> bool:
+        """
+        Check if the configuration folder exists.
+        
+        :return: True if the configuration folder exists
+        """
+        if os.path.exists(self.config_path) and os.path.exists(self.config_file_path):
+            return True
+        
+    def update_config_key(self, key: str, value: any) -> None:
+        """
+        Update a specific key in the configuration file.
+        
+        :param key: Key to update
+        :param value: New value for the key
+        """
+        with open(self.config_file_path, 'r') as f:
+            config_data = json.load(f)
+        
+        config_data[key] = value
+        
+        with open(self.config_file_path, 'w') as f:
+            json.dump(config_data, f, indent=4)
+            
+    def retrieve_config_key(self, key: str) -> any:
+        """
+        Retrieve a specific key from the configuration file.
+        
+        :param key: Key to retrieve
+        :return: Value of the key
+        """
+        with open(self.config_file_path, 'r') as f:
+            config_data = json.load(f)
+        
+        return config_data.get(key, None)
     
     def update_configuration(self) -> None:
         """

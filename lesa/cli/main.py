@@ -1,6 +1,7 @@
 import typer
 import time
 import shutil
+from datetime import datetime
 from rich.text import Text
 from rich.panel import Panel
 from rich.table import Table
@@ -96,18 +97,41 @@ def embed():
         console.print(f"[red]Error: Ollama server is not running![/red]")
         console.print(f"Start the ollama server by running [cyan]lesa start[/cyan] command.")
         raise typer.Exit(1)
-    
-    with console.status("Creating configuration files...", spinner="earth") as status:
+
+    if not dm.check_configuration_folder():
+        console.print("[yellow]Configuration folder not found. Initializing...[/yellow]")
         dm.init()
-        status.update("Extracting text from files...")
-        for file in dm.files:
-            console.log(f"Extracting text from {file}...")
-            docs = dm.extract_file_text(filepath=file)
-            console.log(f"Embedding documents from {file}...")
-            dm.embed_documents(docs)
-        console.log("Saving vector embeddings...")
-        dm.save_vector_store()
-    console.print("[green]Initialized configuration for embedding files[/green]")
+    
+    if not dm.retrieve_config_key("embeddings_initialized"):
+        with console.status("Extracting text from files...", spinner="earth") as status:
+            for file in dm.files:
+                console.log(f"Extracting text from {file}...")
+                docs = dm.extract_file_text(filepath=file)
+                console.log(f"Embedding documents from {file}...")
+                dm.embed_documents(docs)
+            console.log("Saving vector embeddings...")
+            dm.save_vector_store()
+            dm.update_config_key("embeddings_initialized", True)
+            dm.update_config_key('embeddings_init_time', datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+        console.print("[green]Initialized configuration for embedding files[/green]")
+        
+    else:
+        changes = dm.check_for_changes()
+        if len(changes.get('new_files')) == 0 and len(changes.get('modified_files')) == 0 and len(changes.get('deleted_files')) == 0:
+            console.print("[yellow]No changes detected in the directory[/yellow]")
+        else:
+            dm.scan_files()
+            console.print("[green]Files in the directory have been changed since last embedding. Embedding again...[/green]")
+            with console.status("Extracting text from files...", spinner="earth") as status:
+                for file in dm.files:
+                    console.log(f"Extracting text from {file}...")
+                    docs = dm.extract_file_text(filepath=file)
+                    console.log(f"Embedding documents from {file}...")
+                    dm.embed_documents(docs)
+                console.log("Saving vector embeddings...")
+                dm.save_vector_store()
+                dm.update_config_key('embeddings_init_time', datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+            console.print("[green]Embeddings updated successfully![/green]")
 
 @app.command()
 def read(file_path: str = typer.Argument(..., help="Path of the file to read")):

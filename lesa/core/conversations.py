@@ -12,7 +12,6 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains.retrieval import create_retrieval_chain
 
-from lesa.core.documents import DocumentManager
 from lesa.core.ollama import OllamaManager
 from lesa.core.directory_manager import DirectoryManager
 
@@ -36,7 +35,6 @@ class ConversationManager:
         
         self.base_path = os.path.abspath(base_path)
         self.embedding_path = os.path.join(self.base_path, self.CONFIG_DIR, 'embeddings')
-        self.document_manager = DocumentManager()
         self.ollama_manager = OllamaManager()
         self.embeddings_manager = DirectoryManager(document_model=document_model)
         
@@ -134,7 +132,7 @@ class ConversationManager:
         :return: List of embedded documents
         """
         
-        documents = self.document_manager.extract_document_text(file_path)
+        documents = self.embeddings_manager.extract_file_text(file_path)
         docs = self.embeddings_manager.text_splitter.split_documents(documents=documents)
         
         # Embed documents
