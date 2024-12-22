@@ -20,23 +20,21 @@
 
 ## Usage
 
-To start a conversation with a document, simply run:
+To start a conversation with a document (`.pdf` and `.docx` for now), simply run:
 
 ```bash
 lesa read path/to/your/document
 ```
 
-`lesa` supports PDF and DOCX files at the moment.
+### Embed 
 
-### Example
+To embed all files from your current working directory, run:
 
-```console
-foo@bar:~$ lesa read documents/Microprocessor.pdf
-
-> You: what is the difference between real mode and protected mode?
-
-> Lesa: According to the system's context, there are three differentiating points between real mode and protected mode...
+```bash
+lesa embed
 ```
+
+This creates a `.lesa` config folder in your current working directory that stores the embeddings of all the documents in the directory.
 
 <!-- ## Features
 
