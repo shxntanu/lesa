@@ -2,6 +2,8 @@ import typer
 import time
 import shutil
 from datetime import datetime
+from typing import Optional
+
 from rich.text import Text
 from rich.panel import Panel
 from rich.table import Table
@@ -134,7 +136,10 @@ def embed():
             console.print("[green]Embeddings updated successfully![/green]")
 
 @app.command()
-def read(file_path: str = typer.Argument(..., help="Path of the file to read")):
+def read(
+    file_path: str = typer.Argument(..., help="Path of the file to read"), 
+    page : Optional[int]  = typer.Option(None, help="Page number to start reading from")
+):
     """ 
     Reads and starts a chat using the given document from the current working directory.
     """
@@ -144,6 +149,8 @@ def read(file_path: str = typer.Argument(..., help="Path of the file to read")):
         console.print(f"Start the ollama server by running [cyan]lesa start[/cyan] command.")
         raise typer.Exit(1)
     
+    if page:
+        return cm.single_page_chat(file_path, page)
     return cm.embed_single_document_and_chat(file_path)
 
 @app.command()
@@ -165,7 +172,37 @@ def use(model_name: str = typer.Argument(..., help="Name of the model to use fro
     Selects the model to use for conversing with the document.
     """
     
-    pass
+    if not OllamaManager.is_server_running():
+        console.print(f"[red]Error: Ollama server is not running![/red]")
+        console.print(f"Start the ollama server by running [cyan]autocommitt start[/cyan] command.")
+        raise typer.Exit(1)
+
+    models = OllamaManager.get_models()
+    
+    if model_name not in models:
+        console.print(f"[red]Error: Unknown model '{model_name}'[/red]")
+        list()
+        raise typer.Exit(1)
+
+    pulled : bool = True
+    if models[model_name]["downloaded"] != "yes":
+        pulled = OllamaManager.pull_model(model_name)
+    
+    if pulled:
+        models = OllamaManager.get_models()
+        config = OllamaManager.get_config()
+        # deactivated old model
+        models[config['model_name']]['status'] = "disabled"
+
+        models[model_name]["status"] ="active"
+        config['model_name'] = model_name
+
+        OllamaManager.save_config(config)
+        OllamaManager.save_models(models)
+
+        console.print(f"[green]Successfully switched to '{model_name}' model.[/green]")
+    else:
+        console.print("\n[red]Download cancelled![/red]")
 
 if __name__ == "__main__":
     app()

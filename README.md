@@ -30,7 +30,7 @@
 To start a conversation with a document (`.pdf` and `.docx` for now), simply run:
 
 ```bash
-lesa read path/to/your/document
+lesa read path/to/your/document --page <page_number> (optional)
 ```
 
 Or start a conversation with an already-embedded directory, run:

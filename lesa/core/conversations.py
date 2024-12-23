@@ -7,10 +7,10 @@ from rich.text import Text
 from rich.prompt import Prompt
 from typing import Optional, List, Union
 
-from langchain.text_splitter import CharacterTextSplitter
 from langchain_core.prompts import ChatPromptTemplate
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains.retrieval import create_retrieval_chain
+from langchain_core.documents import Document
 
 from lesa.core.ollama import OllamaManager
 from lesa.core.directory_manager import DirectoryManager
@@ -50,7 +50,7 @@ class ConversationManager:
         
         pass
         
-    def _chat(self, chain, system_prompt: Optional[str] = None):
+    def _chat(self, chain, system_prompt: Optional[str] = None, context = Optional[list[Document]]):
         """
         Start an interactive chat with the RAG pipeline.
         
@@ -83,15 +83,25 @@ class ConversationManager:
                     question = f"{system_prompt + ' ' if system_prompt else ''}{user_input}"
                     
                     with self.console.status("🧠 Thinking...") as status:
-                        result = chain.invoke({"input": question})
+                        result = None
+                        if context:
+                            result = chain.invoke({"input": question, "context": context})
+                        else:
+                            result = chain.invoke({"input": question})
                         status.update("🎉 Done!")
                         time.sleep(1)
-                    
-                    response = result['answer'] if result['answer'] else "No response generated."
-                    
-                    self.console.print(
-                        Text(f"[pink]Lesa[/pink]: {response}")
-                    )
+                        
+                    try:
+                        # Llama3 returns a dictionary with 'answer' key which contains the response
+                        response = result['answer'] if result['answer'] else "No response generated."
+                        self.console.print(
+                            Text("Lesa: ", style="bold deep_pink1") + Text(response, style="bold white")
+                        )
+                    except Exception as e:
+                        # Qwen returns a string response
+                        self.console.print(
+                            Text("Lesa: ", style="bold deep_pink1") + Text(result, style="bold white")
+                        )
                 
                 except Exception as e:
                     self.console.print(Panel(
@@ -129,7 +139,8 @@ class ConversationManager:
 
 <context>
 {context}
-</context>"""),
+</context>.
+You can use your general knowledge to supplement the context provided."""),
             ("human", """{input}"""),
         ])
         
@@ -155,3 +166,20 @@ class ConversationManager:
         combine_docs_chain = create_stuff_documents_chain(llm=llm, prompt=prompt)
         qa_chain = create_retrieval_chain(retriever=self.embeddings_manager.vector_store.as_retriever(), combine_docs_chain=combine_docs_chain)
         return self._chat(qa_chain)
+    
+    def single_page_chat(
+        self,
+        file_path: Union[str, Path],
+        page_number: Optional[int] = None,
+    ):
+        """"""
+        
+        docs = self.embeddings_manager.extract_file_text(filepath=file_path, page_number=page_number)
+        prompt = ChatPromptTemplate([
+            ("system", """Answer any use questions based solely on the context given:\n\n\n{context}\n
+You can use your general knowledge to supplement the context provided."""),
+            ("human", """{input}""")
+        ])
+        
+        chain = create_stuff_documents_chain(llm=self.ollama_manager.serve_llm(), prompt=prompt)
+        return self._chat(chain, context=docs)

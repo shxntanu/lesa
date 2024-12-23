@@ -1,11 +1,12 @@
 import os
 import json
 import hashlib
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 from datetime import datetime
 from abc import ABC, abstractmethod
 
 from rich.console import Console
+from rich.text import Text
 console = Console()
 
 import faiss
@@ -31,6 +32,19 @@ class DocumentExtractor(ABC):
             list[Document]: List of extracted documents
         """
         pass
+    
+    @abstractmethod
+    def get_loader(self, filepath: str):
+        """
+        Abstract method to get the document loader for a specific file.
+        
+        Args:
+            filepath (str): Path to the document file
+        
+        Returns:
+            DocumentLoader: Document loader for the file
+        """
+        pass
 
 class DocxExtractor(DocumentExtractor):
     """Extractor for .docx files using python-docx."""
@@ -50,7 +64,19 @@ class DocxExtractor(DocumentExtractor):
             documents = loader.load()
             return documents
         except Exception as e:
-            return f"Error extracting text from {filepath}: {str(e)}"
+            console.print(
+                Text(f"Error extracting text from {filepath}: {str(e)}", style="bold red")
+            )
+            exit(1)
+        
+    def get_loader(self, filepath):
+        try:
+            return Docx2txtLoader(file_path=filepath)
+        except Exception as e:
+            console.print(
+                Text(f"Error extracting text from {filepath}: {str(e)}", style="bold red")
+            )
+            exit(1)
 
 class PDFExtractor(DocumentExtractor):
     """Extractor for PDF files using PyPDF2."""
@@ -70,7 +96,19 @@ class PDFExtractor(DocumentExtractor):
             documents = loader.load()
             return documents
         except Exception as e:
-            return f"Error extracting text from {filepath}: {str(e)}"
+            console.print(
+                Text(f"Error extracting text from {filepath}: {str(e)}", style="bold red")
+            )
+            exit(1)
+        
+    def get_loader(self, filepath):
+        try:
+            return PyPDFLoader(file_path=filepath)
+        except Exception as e:
+            console.print(
+                Text(f"Error extracting text from {filepath}: {str(e)}", style="bold red")
+            )
+            exit(1)
 
 class DirectoryManager:
     """
@@ -317,7 +355,7 @@ class DirectoryManager:
         for idx, doc in enumerate(self.files, 1):
             print(f"{idx}. {os.path.basename(doc)}")
             
-    def extract_file_text(self, filepath: str) -> list[Document]:
+    def extract_file_text(self, filepath: str, page_number: Optional[int] = None) -> Union[list[Document], str]:
         """
         Extract text from a document using the appropriate extractor.
         
@@ -332,6 +370,11 @@ class DirectoryManager:
         # Select appropriate extractor
         extractor = self.supported_extensions.get(file_ext)
         if extractor:
+            if page_number:
+                loader = extractor.get_loader(filepath)
+                for i, page in enumerate(loader.lazy_load()):
+                    if i == page_number:
+                        return self.text_splitter.split_documents(documents=[page])
             documents = extractor.extract_text(filepath)
             return self.text_splitter.split_documents(documents=documents)
         else:

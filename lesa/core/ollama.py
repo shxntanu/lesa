@@ -34,7 +34,7 @@ class OllamaManager:
             "status": "disabled",
             "downloaded": "no",
         },
-        "llama3.1:8b": {
+        "llama3.1:latest": {
             "description": "High-performance model with a larger context window, suitable for larger documents.",
             "size": "4.7GB",
             "status": "disabled",
