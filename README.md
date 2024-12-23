@@ -58,7 +58,7 @@ This creates a `.lesa` config folder in your current working directory that stor
 To install and setup Ollama, run the setup script [`setup-ollama.sh`](scripts/setup-ollama.sh).
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/shxntanu/lesa/main/scripts/setup-ollama.sh | bash
+curl -fsSL https://raw.githubusercontent.com/shxntanu/lesa/master/scripts/setup-ollama.sh | bash
 ```
 
 This script automatically installs the Ollama CLI and pulls the default model (llama3.1:latest) for you. Then install the package using pip.
