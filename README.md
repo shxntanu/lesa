@@ -22,9 +22,6 @@
 
 `lesa` is a CLI tool built in Python that allows you to converse with your documents from the terminal, completely offline and on-device using **Ollama**. Open the terminal in the directory of your choice and start a conversation with any document!
 
-
-
-
 ## Usage
 
 To start a conversation with a document (`.pdf` and `.docx` for now), simply run:
@@ -57,23 +54,16 @@ This creates a `.lesa` config folder in your current working directory that stor
 
 ## Setup
 
-### Prerequisites
-
-`lesa` uses [Ollama](https://ollama.com/) under the hood to utilize the power of large language models. To install Ollama, run:
-
-```bash
-curl -fsSL https://ollama.com/install.sh | sh
-```
-
-`lesa` uses the Llama 3.1 8b as the default. You can use any other model as well, just make sure it has enough context window to understand the content of your documents.
-
-Pull Llama using:
+`lesa` uses [Ollama](https://ollama.com/) under the hood to utilize the power of large language models.
+To install and setup Ollama, run the setup script [`setup-ollama.sh`](scripts/setup-ollama.sh).
 
 ```bash
-ollama pull llama3.1
+curl -fsSL https://raw.githubusercontent.com/shxntanu/lesa/main/scripts/setup-ollama.sh | bash
 ```
 
-### Installation
+This script automatically installs the Ollama CLI and pulls the default model (llama3.1:latest) for you. Then install the package using pip.
+
+## Installation
 
 Simply install the package using pip:
 
