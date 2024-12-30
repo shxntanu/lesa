@@ -15,7 +15,7 @@ readme = "README.md"
 license = "Apache-2.0"
 
 [tool.poetry.dependencies]
-python = "^3.10.14"
+python = ">=3.10.14,<3.13"
 ollama = "^0.4.2"
 requests = "^2.32.3"
 rich = "^13.9.4"
@@ -36,6 +36,7 @@ langchain-community = "^0.3.13"
 langchain-ollama = "^0.2.2"
 docx2txt = "^0.8"
 langchain-huggingface = "^0.1.2"
+deepeval = "^2.0.9"
 
 [tool.poetry.scripts]
 lesa = "lesa.cli.main:app"
