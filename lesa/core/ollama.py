@@ -67,7 +67,7 @@ class OllamaManager:
             Dict: Current configuration settings
         """
         cls.ensure_config()
-        print("Config file location: ", cls.CONFIG_FILE)
+        # print("Config file location: ", cls.CONFIG_FILE)
         return json.loads(cls.CONFIG_FILE.read_text())
 
     @classmethod
@@ -413,4 +413,7 @@ class OllamaManager:
         Returns:
             OllamaLLM: An instance of OllamaLLM for inference
         """
-        return OllamaLLM(model=cls.get_active_model())
+        return OllamaLLM(
+            model=cls.get_active_model(), 
+            temperature=0.9,
+        )
