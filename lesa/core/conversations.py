@@ -61,6 +61,7 @@ class ConversationManager:
         self,
         chain: Chain,
         system_prompt: Optional[str] = None,
+        stream: bool = True,
         context=Optional[list[Document]],
     ):
         """
@@ -105,41 +106,43 @@ class ConversationManager:
                         f"{system_prompt + ' ' if system_prompt else ''}{user_input}"
                     )
 
-                    # Complete Response at once (Takes longer)
-                    # with self.console.status("🧠 Thinking...") as status:
-                    #     result = None
-                    #     if context:
-                    #         result = chain.invoke({"input": question, "context": context})
-                    #     else:
-                    #         result = chain.invoke({"input": question})
-                    #     status.update("🎉 Done!")
-                    #     time.sleep(1)
-
-                    # try:
-                    #     # Llama3 returns a dictionary with 'answer' key which contains the response
-                    #     response = result['answer'] if result['answer'] else "No response generated."
-                    #     self.console.print(
-                    #         Text("Lesa: ", style="bold deep_pink1") + Text(response, style="bold white")
-                    #     )
-                    # except Exception as e:
-                    #     # Qwen returns a string response
-                    #     self.console.print(
-                    #         Text("Lesa: ", style="bold deep_pink1") + Text(result, style="bold white")
-                    #     )
-
-                    # Stream response (Faster)
-                    self.console.print(Text("Lesa: ", style="bold deep_pink1"), end="")
-                    if context:
-                        for token in chain.stream(
-                            {"input": question, "context": context}
-                        ):
-                            self.console.print(token, end="")
-                        self.console.print()
+                    if stream:
+                        # Stream response (Faster)
+                        self.console.print(Text("Lesa: ", style="bold deep_pink1"), end="")
+                        if context:
+                            for token in chain.stream(
+                                {"input": question, "context": context}
+                            ):
+                                self.console.print(token, end="")
+                            self.console.print()
+                        else:
+                            for token in chain.stream({"input": question}):
+                                self.console.print(token, end="")
+                            self.console.print()
+                        time.sleep(1)
+                    
                     else:
-                        for token in chain.stream({"input": question}):
-                            self.console.print(token, end="")
-                        self.console.print()
-                    time.sleep(1)
+                        # Complete Response at once (Takes longer)
+                        with self.console.status("🧠 Thinking...") as status:
+                            result = None
+                            if context:
+                                result = chain.invoke({"input": question, "context": context})
+                            else:
+                                result = chain.invoke({"input": question})
+                            status.update("🎉 Done!")
+                            time.sleep(1)
+
+                        try:
+                            # Llama3 returns a dictionary with 'answer' key which contains the response
+                            response = result['answer'] if result['answer'] else "No response generated."
+                            self.console.print(
+                                Text("Lesa: ", style="bold deep_pink1") + Text(response, style="bold white")
+                            )
+                        except Exception as e:
+                            # Qwen returns a string response
+                            self.console.print(
+                                Text("Lesa: ", style="bold deep_pink1") + Text(result, style="bold white")
+                            )
 
                 except Exception as e:
                     self.console.print(
