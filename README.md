@@ -1,4 +1,4 @@
-![Banner](assets/banner-v3.png)
+![Banner](https://github.com/shxntanu/lesa/raw/master/assets/banner-v3.png)
 
 <div align="center">
 
