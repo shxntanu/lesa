@@ -59,33 +59,31 @@ class ConversationManager:
             self.base_path, self.CONFIG_DIR, "embeddings"
         )
         self.ollama_manager = OllamaManager()
-        self.embeddings_manager = DirectoryManager(document_model=document_model)
+        self.directory_mgr = DirectoryManager(document_model=document_model)
 
         # Console for rich output
         self.console = Console()
 
+    # TODO: Implement a preprocessing pipeline for efficient document processing
     def _setup_preprocessing_pipeline(self):
         """Set up the preprocessing pipeline connections."""
-        pass
-
-    def _setup_conversation_pipeline(self, document_model: str):
-        """Set up the conversation pipeline connections."""
-
         pass
 
     def _chat(
         self,
         chain: Chain,
         system_prompt: Optional[str] = None,
-        stream: bool = True,
         context=Optional[list[Document]],
     ):
         """
         Start an interactive chat with the RAG pipeline.
 
-        :param system_prompt: Optional system-wide context or instruction
-        :param context: Optional list of documents to use as context
+        :param chain: RAG pipeline chain
+        :param system_prompt: System prompt for the chat
+        :param context: Context for the chat
         """
+
+        STREAM: Optional[bool] = self.directory_mgr.retrieve_config_key("streaming")
 
         self.console.print(
             Panel(
@@ -122,7 +120,7 @@ class ConversationManager:
                         f"{system_prompt + ' ' if system_prompt else ''}{user_input}"
                     )
 
-                    if stream:
+                    if STREAM:
                         # Stream response (Faster)
                         self.console.print(
                             Text("Lesa: ", style="bold deep_pink1"), end=""
@@ -185,8 +183,6 @@ class ConversationManager:
     def embed_single_document_and_chat(
         self,
         file_path: Union[str, Path],
-        persist: bool = False,
-        embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2",
     ):
         """
         Embed a single document and start a conversation.
@@ -196,13 +192,11 @@ class ConversationManager:
         :return: List of embedded documents
         """
 
-        documents = self.embeddings_manager.extract_file_text(file_path)
-        docs = self.embeddings_manager.text_splitter.split_documents(
-            documents=documents
-        )
+        documents = self.directory_mgr.extract_file_text(file_path)
+        docs = self.directory_mgr.text_splitter.split_documents(documents=documents)
 
         # Embed documents
-        self.embeddings_manager.embed_documents(docs)
+        self.directory_mgr.embed_documents(docs)
 
         llm = self.ollama_manager.serve_llm()
 
@@ -224,7 +218,7 @@ You can use your general knowledge to supplement the context provided.""",
 
         combine_docs_chain = create_stuff_documents_chain(llm=llm, prompt=prompt)
         qa_chain = create_retrieval_chain(
-            retriever=self.embeddings_manager.vector_store.as_retriever(),
+            retriever=self.directory_mgr.vector_store.as_retriever(),
             combine_docs_chain=combine_docs_chain,
         )
         return self._chat(qa_chain)
@@ -251,11 +245,11 @@ Answer any use questions based solely on the context below:
             ]
         )
 
-        combine_docs_chain = create_stuff_documents_chain(llm=llm, prompt=prompt)
         qa_chain = create_retrieval_chain(
-            retriever=self.embeddings_manager.vector_store.as_retriever(),
-            combine_docs_chain=combine_docs_chain,
+            retriever=self.directory_mgr.vector_store.as_retriever(),
+            combine_docs_chain=create_stuff_documents_chain(llm=llm, prompt=prompt),
         )
+
         return self._chat(qa_chain)
 
     def single_page_chat(
@@ -265,9 +259,10 @@ Answer any use questions based solely on the context below:
     ):
         """"""
 
-        docs = self.embeddings_manager.extract_file_text(
+        docs = self.directory_mgr.extract_file_text(
             filepath=file_path, page_number=page_number
         )
+
         prompt = ChatPromptTemplate(
             [
                 (
@@ -283,4 +278,5 @@ You can use your general knowledge to supplement the context provided.""",
         chain = create_stuff_documents_chain(
             llm=self.ollama_manager.serve_llm(), prompt=prompt
         )
+
         return self._chat(chain, context=docs)

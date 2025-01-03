@@ -237,6 +237,7 @@ class DirectoryManager:
             "embeddings_init_time": None,
             "base_path": self.base_path,
             "files": file_metadata,
+            "streaming": True,
         }
 
         with open(self.config_file_path, "w") as f:
