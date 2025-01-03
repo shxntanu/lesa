@@ -340,10 +340,15 @@ class DirectoryManager:
         :param key: Key to retrieve
         :return: Value of the key
         """
-        with open(self.config_file_path, "r") as f:
-            config_data = json.load(f)
+        try:
+            with open(self.config_file_path, "r") as f:
+                config_data = json.load(f)
 
-        return config_data.get(key, None)
+            return config_data.get(key, None)
+
+        # This error occurs when the user has not initialized the configuration
+        except FileNotFoundError:
+            return None
 
     def update_configuration(self) -> None:
         """

@@ -83,7 +83,9 @@ class ConversationManager:
         :param context: Context for the chat
         """
 
-        STREAM: Optional[bool] = self.directory_mgr.retrieve_config_key("streaming")
+        STREAM: Optional[bool] = (
+            self.directory_mgr.retrieve_config_key("streaming") or True
+        )
 
         self.console.print(
             Panel(
@@ -125,28 +127,34 @@ class ConversationManager:
                         self.console.print(
                             Text("Lesa: ", style="bold deep_pink1"), end=""
                         )
-                        if context:
-                            for token in chain.stream(
-                                {"input": question, "context": context}
-                            ):
+
+                        chain_data = {"input": question}
+
+                        if context is not None:
+                            chain_data["context"] = context
+
+                        for token in chain.stream(chain_data):
+                            # Llama3.1 returns a dictionary with 'answer' key which contains the response
+                            # along with input and context tokens
+                            if isinstance(token, dict):
+                                if "answer" in token:
+                                    self.console.print(token["answer"], end="")
+                            else:
                                 self.console.print(token, end="")
-                            self.console.print()
-                        else:
-                            for token in chain.stream({"input": question}):
-                                self.console.print(token, end="")
-                            self.console.print()
+                        self.console.print()
                         time.sleep(1)
 
                     else:
                         # Complete Response at once (Takes longer)
                         with self.console.status("🧠 Thinking...") as status:
                             result = None
-                            if context:
-                                result = chain.invoke(
-                                    {"input": question, "context": context}
-                                )
-                            else:
-                                result = chain.invoke({"input": question})
+
+                            chain_data = {"input": question}
+                            if context is not None:
+                                chain_data["context"] = context
+
+                            result = chain.invoke(chain_data)
+
                             status.update("🎉 Done!")
                             time.sleep(1)
 
@@ -216,11 +224,11 @@ You can use your general knowledge to supplement the context provided.""",
             ]
         )
 
-        combine_docs_chain = create_stuff_documents_chain(llm=llm, prompt=prompt)
         qa_chain = create_retrieval_chain(
             retriever=self.directory_mgr.vector_store.as_retriever(),
-            combine_docs_chain=combine_docs_chain,
+            combine_docs_chain=create_stuff_documents_chain(llm=llm, prompt=prompt),
         )
+
         return self._chat(qa_chain)
 
     def start_conversation(self):
