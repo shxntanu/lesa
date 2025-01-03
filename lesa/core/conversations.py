@@ -108,7 +108,9 @@ class ConversationManager:
 
                     if stream:
                         # Stream response (Faster)
-                        self.console.print(Text("Lesa: ", style="bold deep_pink1"), end="")
+                        self.console.print(
+                            Text("Lesa: ", style="bold deep_pink1"), end=""
+                        )
                         if context:
                             for token in chain.stream(
                                 {"input": question, "context": context}
@@ -120,13 +122,15 @@ class ConversationManager:
                                 self.console.print(token, end="")
                             self.console.print()
                         time.sleep(1)
-                    
+
                     else:
                         # Complete Response at once (Takes longer)
                         with self.console.status("🧠 Thinking...") as status:
                             result = None
                             if context:
-                                result = chain.invoke({"input": question, "context": context})
+                                result = chain.invoke(
+                                    {"input": question, "context": context}
+                                )
                             else:
                                 result = chain.invoke({"input": question})
                             status.update("🎉 Done!")
@@ -134,14 +138,20 @@ class ConversationManager:
 
                         try:
                             # Llama3 returns a dictionary with 'answer' key which contains the response
-                            response = result['answer'] if result['answer'] else "No response generated."
+                            response = (
+                                result["answer"]
+                                if result["answer"]
+                                else "No response generated."
+                            )
                             self.console.print(
-                                Text("Lesa: ", style="bold deep_pink1") + Text(response, style="bold white")
+                                Text("Lesa: ", style="bold deep_pink1")
+                                + Text(response, style="bold white")
                             )
                         except Exception as e:
                             # Qwen returns a string response
                             self.console.print(
-                                Text("Lesa: ", style="bold deep_pink1") + Text(result, style="bold white")
+                                Text("Lesa: ", style="bold deep_pink1")
+                                + Text(result, style="bold white")
                             )
 
                 except Exception as e:
