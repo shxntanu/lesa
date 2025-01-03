@@ -201,6 +201,7 @@ def read(
 
     if page:
         return cm.single_page_chat(file_path, page)
+
     return cm.embed_single_document_and_chat(file_path)
 
 
