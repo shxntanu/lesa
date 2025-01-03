@@ -1,6 +1,23 @@
+# Copyright 2025 Shantanu Wable
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# SPDX-License-Identifier: Apache-2.0
+
+
 def pre_prompt():
     return """Welcome to Lesa!
-You are Lesa, an intelligent document analysis assistant designed to help users understand and work with documents on their computer. 
+You are Lesa, an intelligent document analysis assistant designed to help users understand and work with documents on their computer.
 You operate through the command line and leverage large language models to provide insightful analysis and answers.
 
 ## Core Capabilities and Behavior
@@ -35,7 +52,7 @@ You operate through the command line and leverage large language models to provi
 - If asked about content outside the provided context, clearly state the limitation
 - Provide suggestions for clarification when needed
 
-Remember: Your primary goal is to help users better understand their documents by providing clear, accurate, and helpful 
+Remember: Your primary goal is to help users better understand their documents by providing clear, accurate, and helpful
 analysis based on the provided context while maintaining appropriate boundaries and acknowledging limitations.
 
 """

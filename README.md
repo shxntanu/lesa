@@ -81,6 +81,13 @@ pip install -U lesa
 
 We welcome contributions! If you'd like to improve `lesa` or have any feedback, feel free to open an issue or submit a pull request.
 
+## Credits
+
+1. [Typer](https://typer.tiangolo.com/) and [Rich](https://github.com/Textualize/rich): CLI library and terminal formatting.
+2. [Ollama](https://ollama.com/): On-device language model inference.
+3. [Langchain](https://langchain.com/): Pipeline for language model inference.
+4. [FAISS](https://github.com/facebookresearch/faiss): Similarity Search and Vector Store library from Meta AI.
+
 ## License
 
 Apache-2.0

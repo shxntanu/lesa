@@ -39,6 +39,7 @@ langchain-huggingface = "^0.1.2"
 deepeval = "^2.0.9"
 pytest = "^8.3.4"
 black = "^24.10.0"
+pre-commit = "^4.0.1"
 
 [tool.poetry.scripts]
 lesa = "lesa.cli.main:app"
