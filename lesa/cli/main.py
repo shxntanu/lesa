@@ -29,9 +29,6 @@ from lesa.core.ollama import OllamaManager
 from lesa.core.conversations import ConversationManager
 from lesa.core.directory_manager import DirectoryManager
 
-dm = DirectoryManager()
-cm = ConversationManager(directory_manager_instance=dm)
-
 console = Console()
 app = typer.Typer()
 
@@ -41,10 +38,12 @@ def start():
     """
     Starts ollama server and ensures the default LLM model is available.
 
-
     Returns:
         Optional[subprocess.Popen]: Process object if server starts successfully, None otherwise
     """
+
+    dm = DirectoryManager()
+    cm = ConversationManager(directory_manager_instance=dm)
 
     console.print(
         Panel(
@@ -112,6 +111,8 @@ def embed():
     """
     Looks for embeddable files in the current working directory and creates vector embeddings of the same.
     """
+
+    dm = DirectoryManager()
 
     console.print(
         Panel(
@@ -192,6 +193,9 @@ def read(
     Reads and starts a chat using the given document from the current working directory.
     """
 
+    dm = DirectoryManager()
+    cm = ConversationManager(directory_manager_instance=dm)
+
     if not OllamaManager.is_server_running():
         console.print(f"[red]Error: Ollama server is not running![/red]")
         console.print(
@@ -210,6 +214,9 @@ def chat():
     """
     Starts a chat with the embedded documents.
     """
+
+    dm = DirectoryManager()
+    cm = ConversationManager(directory_manager_instance=dm)
 
     if not OllamaManager.is_server_running():
         console.print(f"[red]Error: Ollama server is not running![/red]")
