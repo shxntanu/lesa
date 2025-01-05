@@ -41,8 +41,8 @@ class ConversationManager:
 
     def __init__(
         self,
+        directory_manager_instance: DirectoryManager,
         base_path: str = ".",
-        document_model: str = "sentence-transformers/all-MiniLM-L6-v2",
     ):
         """
         Initialize the RAG pipeline with configurable parameters.
@@ -59,7 +59,7 @@ class ConversationManager:
             self.base_path, self.CONFIG_DIR, "embeddings"
         )
         self.ollama_manager = OllamaManager()
-        self.directory_mgr = DirectoryManager(document_model=document_model)
+        self.directory_mgr = directory_manager_instance
 
         # Console for rich output
         self.console = Console()

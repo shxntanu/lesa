@@ -29,8 +29,8 @@ from lesa.core.ollama import OllamaManager
 from lesa.core.conversations import ConversationManager
 from lesa.core.directory_manager import DirectoryManager
 
-cm = ConversationManager()
 dm = DirectoryManager()
+cm = ConversationManager(directory_manager_instance=dm)
 
 console = Console()
 app = typer.Typer()
