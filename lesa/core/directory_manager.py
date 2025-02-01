@@ -150,8 +150,9 @@ class DirectoryManager:
     def __init__(
         self,
         base_path: str = ".",
+        # Default model is MiniLM and embedding dimension is 384
         document_model: str = "sentence-transformers/all-MiniLM-L6-v2",
-        console: Console = None,
+        embedding_dim: int = 384,
     ):
         """
         Initialize the configuration manager for a specific directory.
@@ -167,9 +168,10 @@ class DirectoryManager:
             ".docx": DocxExtractor(),
             ".pdf": PDFExtractor(),
         }
-
-        self.document_model = document_model
-        self.embeddings = HuggingFaceEmbeddings(model_name=document_model)
+        model_kwargs = {"trust_remote_code": True}
+        self.embeddings = HuggingFaceEmbeddings(
+            model_name=document_model, model_kwargs=model_kwargs
+        )
         self.text_splitter = CharacterTextSplitter(
             chunk_size=1000, chunk_overlap=30, separator="\n"
         )
@@ -185,9 +187,7 @@ class DirectoryManager:
             self.vector_store = FAISS(
                 embedding_function=self.embeddings,
                 docstore=InMemoryDocstore(),
-                index=faiss.IndexFlatL2(
-                    len(self.embeddings.embed_query("hello world"))
-                ),
+                index=faiss.IndexFlatL2(embedding_dim),
                 index_to_docstore_id={},
             )
 
@@ -424,7 +424,7 @@ class DirectoryManager:
         else:
             return f"No extractor found for file type: {file_ext}"
 
-    def embed_documents(self, documents: list[Document]):
+    def embed_documents(self, documents: list[Document]) -> bool:
         """
         Embed a list of documents into the vector store.
 
@@ -439,7 +439,7 @@ class DirectoryManager:
             print(f"Error embedding documents: {e}")
             return False
 
-    def save_vector_store(self):
+    def save_vector_store(self) -> bool:
         """
         Save the vector store to disk.
         """
